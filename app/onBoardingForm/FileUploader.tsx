@@ -8,8 +8,7 @@ interface FileUploaderProps {
   onUploadSuccess: (url: string) => void;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 
 
 export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) => {
   const [file, setFile] = useState<File | null>(null);
@@ -73,7 +72,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) =
       } else {
         throw new Error('Upload failed');
       }
-    } catch (error) {
+    } catch (_error) { // Changed from 'error' to '_error'
       toast({
         title: 'Error',
         description: 'Failed to upload file. Please try again.',
