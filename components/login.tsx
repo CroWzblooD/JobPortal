@@ -10,7 +10,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { signIn,signOut } from 'next-auth/react'
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation'
+import useUserStore from '@/store/UserStore'
 import axios from 'axios'
+import { getUser } from '@/actions/user.actions'
 export default function AuthPage() {
   useEffect(() => {
     signOut({
@@ -18,6 +20,7 @@ export default function AuthPage() {
     });
   }, []);
   const { toast } = useToast();
+  const {setUser}=useUserStore()
   const router = useRouter()
   const [isloading,setisloading]=useState(false)
   const [signUpData, setSignUpData] = useState({
@@ -46,17 +49,13 @@ export default function AuthPage() {
       setisloading(true);
    const response=   await axios.post("/api/register", { signUpData });
       toast({ title: "Registration Successful" });
-      const email = response.data.emailId
-      const password = response.data.password
-      const login= await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      if (login?.ok) {
+      console.log(response)
+
+     
+      if (response.statusText==='OK') {
         toast({ title: "Correct login" });
         window.location.assign("/");
-      } else if (login?.error) {
+      } else if (response?.status!==200) {
         toast({ title: "Error! Please Try Again" });
       }
     } catch (err) {
@@ -79,7 +78,18 @@ export default function AuthPage() {
     console.log(login)
     if (login?.ok) {
       toast({ title: "Correct login" });
-      router.push('/')
+      
+   
+        const info= await getUser(email)
+        console.log(info)
+        if (info?.emailId && info?.isVerified !== undefined && info?.name) {
+          setUser({ email: info.emailId, isVerified: info.isVerified, name: info.name,id:info?.id! });
+          console.log('aayayu')
+          router.push('/');
+          console.log('aaya')
+        } else {
+          toast({ title: "Error! User info not available." });
+        }
     } else if (login?.error) {
       toast({ title: "Error! Please Try Again"+login.error });
     }
@@ -98,7 +108,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray">
+    <div className="flex items-center justify-center min-h-screen ">
       <Tabs defaultValue="login" className="w-[400px]">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
